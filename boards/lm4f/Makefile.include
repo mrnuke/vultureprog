@@ -25,6 +25,8 @@ LD		= $(PREFIX)-gcc
 OBJCOPY		= $(PREFIX)-objcopy
 OBJDUMP		= $(PREFIX)-objdump
 
+CFLAGS		+= -I../../../src/include
+
 TOOLCHAIN_DIR ?= ../../../libopencm3
 ifeq ($(wildcard ../../../libopencm3/lib/libopencm3_lm4f.a),)
 ifneq ($(strip $(shell which $(CC))),)

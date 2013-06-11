@@ -26,6 +26,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <blackbox.h>
+
 /* This is how the RGB LED is connected on the stellaris launchpad */
 #define RGB_PORT	GPIOF
 enum {
@@ -129,8 +131,14 @@ int main(void)
 {
 	gpio_enable_ahb_aperture();
 	clock_setup();
+	/* Must be called before any printf() */
+	blackbox_init();
+	print_info("\n\rVultureprog: QiProg for the Stellaris Launchpad\n\r");
+
 	gpio_setup();
 	irq_setup();
+
+	print_info("Peripherals initialized\n\r");
 
 	/* Blink each color of the RGB LED in order. */
 	while (1) {
@@ -173,19 +181,24 @@ void gpiof_isr(void)
 			 * The divisor is still applied to the raw clock.
 			 * Disable the divisor, or we'll divide the raw clock.
 			 */
+			print_info("Changing system clock to 16MHz MOSC\n\r");
 			SYSCTL_RCC &= ~SYSCTL_RCC_USESYSDIV;
 		} else {
+			print_info("Changing system clock to %iMHz\n\r",
+				   400 / plldiv[ipll]);
 			rcc_change_pll_divisor(plldiv[ipll]);
 		}
 		/* Clear interrupt source */
 		gpio_clear_interrupt_flag(GPIOF, USR_SW1);
 	}
-	
+
 	if (gpio_is_interrupt_source(GPIOF, USR_SW2)) {
 		/* SW2 was just depressed */
 		if (!bypass) {
 			if (plldiv[++ipll] == 0)
 				ipll = 0;
+			print_info("Changing system clock to %iMHz\n\r",
+				   400 / plldiv[ipll]);
 			rcc_change_pll_divisor(plldiv[ipll]);
 		}
 		/* Clear interrupt source */
