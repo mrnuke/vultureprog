@@ -74,6 +74,19 @@ Yes, it's that easy!
 
 
 
+Fine-tuning firmware behavior
+-----------------------------
+
+Certain options may be fine-tuned by editing src/include/config.h. All
+configuration options are prefixed with <code> CONFIG_ </code> to distinguish
+them from other defines. These options are designed more as "developer options"
+and less as "user options". They include:
+
+* CONFIG_ENABLE_CONSOLE: enable console logging
+* CONFIG_LOGLEVEL: the severity of debug messages
+
+
+
 Troubleshooting
 ---------------
 
