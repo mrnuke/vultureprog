@@ -31,24 +31,24 @@
 /* This is how the RGB LED is connected on the stellaris launchpad */
 #define RGB_PORT	GPIOF
 enum {
-	LED_R	= GPIO1,
-	LED_G	= GPIO3,
-	LED_B	= GPIO2,
+	LED_R = GPIO1,
+	LED_G = GPIO3,
+	LED_B = GPIO2,
 };
 
 /* This is how the user switches are connected to GPIOF */
 enum {
-	USR_SW1	= GPIO4,
-	USR_SW2	= GPIO0,
+	USR_SW1 = GPIO4,
+	USR_SW2 = GPIO0,
 };
 
 /* The divisors we loop through when the user presses SW2 */
 enum {
-	PLL_DIV_80MHZ 	= 5,
-	PLL_DIV_57MHZ 	= 7,
-	PLL_DIV_40MHZ 	= 10,
-	PLL_DIV_20MHZ 	= 20,
-	PLL_DIV_16MHZ 	= 25,
+	PLL_DIV_80MHZ = 5,
+	PLL_DIV_57MHZ = 7,
+	PLL_DIV_40MHZ = 10,
+	PLL_DIV_20MHZ = 20,
+	PLL_DIV_16MHZ = 25,
 };
 
 static const u8 plldiv[] = {
@@ -59,6 +59,7 @@ static const u8 plldiv[] = {
 	PLL_DIV_16MHZ,
 	0
 };
+
 /* The PLL divisor we are currently on */
 static size_t ipll = 0;
 /* Are we bypassing the PLL, or not? */
@@ -85,10 +86,10 @@ static void gpio_setup(void)
 	 * This port is used to control the RGB LED
 	 */
 	periph_clock_enable(RCC_GPIOF);
-	const u32 outpins = (LED_R | LED_G | LED_B);
+	const u32 opins = (LED_R | LED_G | LED_B);
 
-	gpio_mode_setup(RGB_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, outpins);
-	gpio_set_output_config(RGB_PORT, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, outpins);
+	gpio_mode_setup(RGB_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, opins);
+	gpio_set_output_config(RGB_PORT, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, opins);
 
 	/*
 	 * Now take care of our buttons
@@ -123,7 +124,7 @@ static void irq_setup(void)
 static void delay(void)
 {
 	int i;
-	for (i = 0; i < FLASH_DELAY; i++)       /* Wait a bit. */
+	for (i = 0; i < FLASH_DELAY; i++)	/* Wait a bit. */
 		__asm__("nop");
 }
 
@@ -146,25 +147,25 @@ int main(void)
 		 * Flash the Red diode
 		 */
 		gpio_set(RGB_PORT, LED_R);
-		delay(); /* Wait a bit. */
+		delay();	/* Wait a bit. */
 		gpio_clear(RGB_PORT, LED_R);
-		delay(); /* Wait a bit. */
+		delay();	/* Wait a bit. */
 
 		/*
 		 * Flash the Green diode
 		 */
 		gpio_set(RGB_PORT, LED_G);
-		delay(); /* Wait a bit. */
+		delay();	/* Wait a bit. */
 		gpio_clear(RGB_PORT, LED_G);
-		delay(); /* Wait a bit. */
+		delay();	/* Wait a bit. */
 
 		/*
 		 * Flash the Blue diode
 		 */
 		gpio_set(RGB_PORT, LED_B);
-		delay(); /* Wait a bit. */
+		delay();	/* Wait a bit. */
 		gpio_clear(RGB_PORT, LED_B);
-		delay(); /* Wait a bit. */
+		delay();	/* Wait a bit. */
 	}
 
 	return 0;
