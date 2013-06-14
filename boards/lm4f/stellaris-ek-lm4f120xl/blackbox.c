@@ -60,7 +60,7 @@ void hard_fault_handler(void)
 {
 	u32 reg32;
 
-	print_emerg("Hard fault occured\n\r");
+	print_emerg("Hard fault occured\n");
 
 	/*
 	 * We can't do anything about hard faulting, but we can send info
@@ -68,49 +68,49 @@ void hard_fault_handler(void)
 	 */
 	reg32 = SCB_HFSR;
 	if (reg32 & SCB_HFSR_FORCED)
-		print_emerg("FORCED: Fault escalated to hard fault\n\r");
+		print_emerg("FORCED: Fault escalated to hard fault\n");
 	if (reg32 & SCB_HFSR_VECTTBL)
-		print_emerg("VECT\n\r");
+		print_emerg("VECT\n");
 
 	reg32 = SCB_CFSR;
 	if (reg32 & SCB_CFSR_DIVBYZERO)
-		print_emerg("DIV0: Divide-by-Zero Usage Fault\n\r");
+		print_emerg("DIV0: Divide-by-Zero Usage Fault\n");
 	if (reg32 & SCB_CFSR_UNALIGNED)
-		print_emerg("UNALIGN: Unaligned Access Usage Fault\n\r");
+		print_emerg("UNALIGN: Unaligned Access Usage Fault\n");
 	if (reg32 & SCB_CFSR_NOCP)
-		print_emerg("NOCP: No Coprocessor Usage Fault\n\r");
+		print_emerg("NOCP: No Coprocessor Usage Fault\n");
 	if (reg32 & SCB_CFSR_INVPC)
-		print_emerg("INVCP: Invalid PC Load Usage Fault\n\r");
+		print_emerg("INVCP: Invalid PC Load Usage Fault\n");
 	if (reg32 & SCB_CFSR_INVSTATE)
-		print_emerg("INVSTAT: Invalid State Usage Fault\n\r");
+		print_emerg("INVSTAT: Invalid State Usage Fault\n");
 	if (reg32 & SCB_CFSR_UNDEFINSTR)
-		print_emerg("UNDEF: Undefined Instruction Usage Fault\n\r");
+		print_emerg("UNDEF: Undefined Instruction Usage Fault\n");
 	if (reg32 & SCB_CFSR_BFARVALID)
-		print_emerg("BFARV: Bus Fault Address Register Valid\n\r");
+		print_emerg("BFARV: Bus Fault Address Register Valid\n");
 	if (reg32 & (1 << 13) )
-		print_emerg("BLSPERR: Bus Fault on Floating-Point Lazy State Preservation\n\r");
+		print_emerg("BLSPERR: Bus Fault on Floating-Point Lazy State Preservation\n");
 	if (reg32 & SCB_CFSR_STKERR)
-		print_emerg("BSTKE: Stack Bus Fault\n\r");
+		print_emerg("BSTKE: Stack Bus Fault\n");
 	if (reg32 & SCB_CFSR_UNSTKERR)
-		print_emerg("BUSTKE: Unstack Bus Fault\n\r");
+		print_emerg("BUSTKE: Unstack Bus Fault\n");
 	if (reg32 & SCB_CFSR_IMPRECISERR)
-		print_emerg("IMPRE: Imprecise Data Bus Error\n\r");
+		print_emerg("IMPRE: Imprecise Data Bus Error\n");
 	if (reg32 & SCB_CFSR_PRECISERR)
-		print_emerg("PRECISE: Precise Data Bus Error\n\r");
+		print_emerg("PRECISE: Precise Data Bus Error\n");
 	if (reg32 & SCB_CFSR_IBUSERR)
-		print_emerg("IBUS: Instruction Bus Error\n\r");
+		print_emerg("IBUS: Instruction Bus Error\n");
 	if (reg32 & SCB_CFSR_MMARVALID)
-		print_emerg("MMARV:Memory Management Fault Address Register Valid\n\r");
+		print_emerg("MMARV:Memory Management Fault Address Register Valid\n");
 	if (reg32 & (1 << 5) )
-		print_emerg("MLSPERR:Memory Management Fault on Floating-Point Lazy State Preservation\n\r");
+		print_emerg("MLSPERR:Memory Management Fault on Floating-Point Lazy State Preservation\n");
 	if (reg32 & SCB_CFSR_MSTKERR)
-		print_emerg("MSTKE: Stack Access Violation\n\r");
+		print_emerg("MSTKE: Stack Access Violation\n");
 	if (reg32 & SCB_CFSR_MUNSTKERR)
-		print_emerg("MUSTKE: Unstack Access Violation\n\r");
+		print_emerg("MUSTKE: Unstack Access Violation\n");
 	if (reg32 & SCB_CFSR_DACCVIOL)
-		print_emerg("DERR: Data Access Violation\n\r");
+		print_emerg("DERR: Data Access Violation\n");
 	if (reg32 & SCB_CFSR_IACCVIOL)
-		print_emerg("IERR: Instruction Access Violation\n\r");
+		print_emerg("IERR: Instruction Access Violation\n");
 	while (1) ;
 }
 
@@ -125,8 +125,11 @@ int _write(int file, char *ptr, int len)
 	int i;
 
 	if (file == 1) {
-		for (i = 0; i < len; i++)
+		for (i = 0; i < len; i++) {
+			if (ptr[i] == '\n')
+				uart_send_blocking(UART0, '\r');
 			uart_send_blocking(UART0, ptr[i]);
+		}
 		return i;
 	}
 

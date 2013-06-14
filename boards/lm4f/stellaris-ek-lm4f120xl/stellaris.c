@@ -133,12 +133,12 @@ int main(void)
 	clock_setup();
 	/* Must be called before any printf() */
 	blackbox_init();
-	print_info("\n\rVultureprog: QiProg for the Stellaris Launchpad\n\r");
+	print_info("\nVultureprog: QiProg for the Stellaris Launchpad\n");
 
 	gpio_setup();
 	irq_setup();
 
-	print_info("Peripherals initialized\n\r");
+	print_info("Peripherals initialized\n");
 
 	/* Blink each color of the RGB LED in order. */
 	while (1) {
@@ -181,10 +181,10 @@ void gpiof_isr(void)
 			 * The divisor is still applied to the raw clock.
 			 * Disable the divisor, or we'll divide the raw clock.
 			 */
-			print_info("Changing system clock to 16MHz MOSC\n\r");
+			print_info("Changing system clock to 16MHz MOSC\n");
 			SYSCTL_RCC &= ~SYSCTL_RCC_USESYSDIV;
 		} else {
-			print_info("Changing system clock to %iMHz\n\r",
+			print_info("Changing system clock to %iMHz\n",
 				   400 / plldiv[ipll]);
 			rcc_change_pll_divisor(plldiv[ipll]);
 		}
@@ -197,7 +197,7 @@ void gpiof_isr(void)
 		if (!bypass) {
 			if (plldiv[++ipll] == 0)
 				ipll = 0;
-			print_info("Changing system clock to %iMHz\n\r",
+			print_info("Changing system clock to %iMHz\n",
 				   400 / plldiv[ipll]);
 			rcc_change_pll_divisor(plldiv[ipll]);
 		}
