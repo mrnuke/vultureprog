@@ -23,6 +23,7 @@ LDSCRIPT = ek-lm4f120xl.ld
 
 OBJS += blackbox.o \
 	usb_dev.o \
+        lpc_io.o \
 	core.o \
 	qiprog_usb_device.o \
 	qiprog_lpc.o
