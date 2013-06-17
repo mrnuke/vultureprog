@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "stellaris.h"
+
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/lm4f/systemcontrol.h>
 #include <libopencm3/lm4f/rcc.h>
@@ -138,6 +140,7 @@ int main(void)
 
 	gpio_setup();
 	irq_setup();
+	stellaris_usb_init();
 
 	print_info("Peripherals initialized\n");
 

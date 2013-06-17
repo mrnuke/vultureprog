@@ -21,7 +21,8 @@ BINARY = stellaris
 
 LDSCRIPT = ek-lm4f120xl.ld
 
-OBJS += blackbox.o
+OBJS += blackbox.o \
+	usb_dev.o
 
 include ../Makefile.include
 
