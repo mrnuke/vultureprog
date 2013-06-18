@@ -51,6 +51,8 @@ it is very likely that your toolchain's libopencm3 will not include it. Second,
 the main developer is also a libopencm3 contributor, and including the library
 makes it very easy to send changes and bugfixes upstream and include them here.
 
+QiProg upstream repository is also included since Vultureprog uses the QiProg
+API, and links to the USB device logic in QiProg.
 
 
 Usage
