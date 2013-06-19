@@ -188,8 +188,7 @@ static void set_config(usbd_device * usbd_dev, u16 wValue)
 	usbd_ep_setup(usbd_dev, 0x81, USB_ENDPOINT_ATTR_BULK, 64, ep1_in_tx_cb);
 
 	usbd_register_control_callback(usbd_dev,
-				       USB_REQ_TYPE_CLASS |
-				       USB_REQ_TYPE_INTERFACE,
+				       USB_REQ_TYPE_VENDOR,
 				       USB_REQ_TYPE_TYPE |
 				       USB_REQ_TYPE_RECIPIENT,
 				       qiprog_control_request);
