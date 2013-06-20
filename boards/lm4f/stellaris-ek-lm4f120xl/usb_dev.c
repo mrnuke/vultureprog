@@ -20,6 +20,8 @@
 #include "stellaris.h"
 #include <blackbox.h>
 
+#include <qiprog_usb_dev.h>
+
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/lm4f/nvic.h>
 #include <libopencm3/lm4f/rcc.h>
@@ -156,24 +158,34 @@ static int qiprog_control_request(usbd_device * usbd_dev,
 				  struct usb_setup_data *req, u8 ** buf,
 				  u16 * len, usb_complete_cb complete)
 {
+	qiprog_err ret;
+
 	(void)usbd_dev;
-	(void)buf;
-	(void)len;
 	(void)complete;
 
-	/* TODO: Connect to QiProg logic */
-
-	print_spew("Received a control request:\n");
+	/*
+	 * Don't be overly verbose in a control transaction.
+	 *
+	 * If we need to stall the endpoint, but don't do it fast enough, the
+	 * host may not see an error. It could be due to a bug in our USB driver
+	 * or just a fact of USB in general.
+	 *
+	 * Just be shy for now.
+	 */
 	print_spew("bmRequestType: 0x%.2x\n", req->bmRequestType);
-	print_spew("bRequest:      0x%.2x\n", req->bRequest);
-	print_spew("wValue:        0x%.4x\n", req->wValue);
-	print_spew("wIndex:        0x%.4x\n", req->wIndex);
-	print_spew("wLength:       0x%.4x\n", req->wLength);
 
-	/* NAK the request. FIXME: The ACK/NAK should be decided by QiProg */
-	return 0;
+	ret = qiprog_handle_control_request(req->bRequest, req->wValue,
+					    req->wIndex, req->wLength,
+					    buf, len);
+
+	if (ret != QIPROG_SUCCESS) {
+		print_err("Request was not handled\n");
+	}
+	/* ACK or STALL based on whether QiProg handles the request */
+	return (ret == QIPROG_SUCCESS);
 }
 
+extern struct qiprog_device stellaris_lpc_dev;
 /*
  * Initialize the USB configuration
  *
@@ -193,6 +205,7 @@ static void set_config(usbd_device * usbd_dev, u16 wValue)
 				       USB_REQ_TYPE_RECIPIENT,
 				       qiprog_control_request);
 
+	qiprog_change_device(&stellaris_lpc_dev);
 	print_info("Done.\n\r");
 }
 
