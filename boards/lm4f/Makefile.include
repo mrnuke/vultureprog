@@ -26,6 +26,7 @@ OBJCOPY		= $(PREFIX)-objcopy
 OBJDUMP		= $(PREFIX)-objdump
 
 CFLAGS		+= -I../../../src/include
+CFLAGS		+= -I../../../qiprog/libqiprog/include
 
 TOOLCHAIN_DIR ?= ../../../libopencm3
 ifeq ($(wildcard ../../../libopencm3/lib/libopencm3_lm4f.a),)

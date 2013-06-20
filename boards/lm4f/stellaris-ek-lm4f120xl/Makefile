@@ -22,7 +22,11 @@ BINARY = stellaris
 LDSCRIPT = ek-lm4f120xl.ld
 
 OBJS += blackbox.o \
-	usb_dev.o
+	usb_dev.o \
+	core.o \
+	qiprog_usb_device.o
+
+VPATH += ../../../qiprog/libqiprog/src
 
 include ../Makefile.include
 
