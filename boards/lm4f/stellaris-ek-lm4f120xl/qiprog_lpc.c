@@ -46,9 +46,9 @@ static qiprog_err get_capabilities(struct qiprog_device *dev,
 	return QIPROG_SUCCESS;
 }
 
-static qiprog_err set_bus(struct qiprog_device * dev, enum qiprog_bus bus)
+static qiprog_err set_bus(struct qiprog_device *dev, enum qiprog_bus bus)
 {
-	(void) dev;
+	(void)dev;
 	/*
 	 * Don't worry about switching buses for now. If LPC is specified, and
 	 * only LPC, then we are happy.
@@ -75,12 +75,86 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 	return QIPROG_SUCCESS;
 }
 
+static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
+			uint8_t * data)
+{
+	(void)dev;
+	(void)addr;
+
+	/* Pretend we are reading data */
+	*data = 0xa5;
+
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err read16(struct qiprog_device *dev, uint32_t addr,
+			 uint16_t * data)
+{
+	(void)dev;
+	(void)addr;
+
+	/* Pretend we are reading data */
+	*data = 0xa55a;
+
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err read32(struct qiprog_device *dev, uint32_t addr,
+			 uint32_t * data)
+{
+	(void)dev;
+	(void)addr;
+
+	/* Pretend we are reading data */
+	*data = 0xf05aa50f;
+
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err write8(struct qiprog_device *dev, uint32_t addr, uint8_t data)
+{
+	(void)dev;
+	(void)addr;
+	(void)data;
+
+	/* Pretend write was successful */
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
+			  uint16_t data)
+{
+	(void)dev;
+	(void)addr;
+	(void)data;
+
+	/* Pretend write was successful */
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
+			  uint32_t data)
+{
+	(void)dev;
+	(void)addr;
+	(void)data;
+
+	/* Pretend write was successful */
+	return QIPROG_SUCCESS;
+}
+
 static struct qiprog_driver stellaris_lpc_drv = {
 	.scan = NULL,		/* scan is not used */
 	.dev_open = lpc_init,
 	.get_capabilities = get_capabilities,
 	.set_bus = set_bus,
 	.read_chip_id = read_chip_id,
+	.read8 = read8,
+	.read16 = read16,
+	.read32 = read32,
+	.write8 = write8,
+	.write16 = write16,
+	.write32 = write32,
 };
 
 struct qiprog_device stellaris_lpc_dev = {
