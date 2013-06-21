@@ -46,10 +46,24 @@ static qiprog_err get_capabilities(struct qiprog_device *dev,
 	return QIPROG_SUCCESS;
 }
 
+static qiprog_err set_bus(struct qiprog_device * dev, enum qiprog_bus bus)
+{
+	(void) dev;
+	/*
+	 * Don't worry about switching buses for now. If LPC is specified, and
+	 * only LPC, then we are happy.
+	 */
+	if ((bus & QIPROG_BUS_LPC) && ((bus & ~QIPROG_BUS_LPC) == 0))
+		return QIPROG_SUCCESS;
+	else
+		return QIPROG_ERR_ARG;
+}
+
 static struct qiprog_driver stellaris_lpc_drv = {
 	.scan = NULL,		/* scan is not used */
 	.dev_open = lpc_init,
 	.get_capabilities = get_capabilities,
+	.set_bus = set_bus,
 };
 
 struct qiprog_device stellaris_lpc_dev = {
