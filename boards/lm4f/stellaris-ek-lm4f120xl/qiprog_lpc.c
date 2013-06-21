@@ -25,6 +25,8 @@ static struct qiprog_driver stellaris_lpc_drv;
  */
 static qiprog_err lpc_init(struct qiprog_device *dev)
 {
+	(void) dev;
+
 	return QIPROG_SUCCESS;
 }
 
@@ -34,6 +36,8 @@ static qiprog_err lpc_init(struct qiprog_device *dev)
 static qiprog_err get_capabilities(struct qiprog_device *dev,
 				   struct qiprog_capabilities *caps)
 {
+	(void) dev;
+
 	caps->instruction_set = 0;
 	caps->bus_master = QIPROG_BUS_LPC;
 	caps->max_direct_data = 0;
