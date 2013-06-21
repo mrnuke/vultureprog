@@ -172,7 +172,7 @@ static int qiprog_control_request(usbd_device * usbd_dev,
 	 *
 	 * Just be shy for now.
 	 */
-	print_spew("bmRequestType: 0x%.2x\n", req->bmRequestType);
+	print_spew("bRequest: 0x%.2x\n", req->bRequest);
 
 	ret = qiprog_handle_control_request(req->bRequest, req->wValue,
 					    req->wIndex, req->wLength,
