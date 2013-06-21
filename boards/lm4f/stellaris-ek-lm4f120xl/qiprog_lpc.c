@@ -59,11 +59,28 @@ static qiprog_err set_bus(struct qiprog_device * dev, enum qiprog_bus bus)
 		return QIPROG_ERR_ARG;
 }
 
+static qiprog_err read_chip_id(struct qiprog_device *dev,
+			       struct qiprog_chip_id ids[9])
+{
+	(void)dev;
+
+	/* Just pretend we have a chip with id c03e:b007 */
+	ids[0].id_method = 1;
+	ids[0].vendor_id = 0xc03e;
+	ids[0].device_id = 0xb007;
+
+	/* And no second chip */
+	ids[1].id_method = 0;
+
+	return QIPROG_SUCCESS;
+}
+
 static struct qiprog_driver stellaris_lpc_drv = {
 	.scan = NULL,		/* scan is not used */
 	.dev_open = lpc_init,
 	.get_capabilities = get_capabilities,
 	.set_bus = set_bus,
+	.read_chip_id = read_chip_id,
 };
 
 struct qiprog_device stellaris_lpc_dev = {
