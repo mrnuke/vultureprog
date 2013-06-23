@@ -17,15 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "lpc_io.h"
+
 #include <qiprog_usb_dev.h>
+
 static struct qiprog_driver stellaris_lpc_drv;
 
 /**
  * @brief QiProg driver 'dev_open' member
  */
-static qiprog_err lpc_init(struct qiprog_device *dev)
+static qiprog_err lpc_open(struct qiprog_device *dev)
 {
-	(void) dev;
+	(void)dev;
+
+	/* Configure pins for LPC master mode */
+	lpc_init();
 
 	return QIPROG_SUCCESS;
 }
@@ -62,17 +68,32 @@ static qiprog_err set_bus(struct qiprog_device *dev, enum qiprog_bus bus)
 static qiprog_err read_chip_id(struct qiprog_device *dev,
 			       struct qiprog_chip_id ids[9])
 {
+	qiprog_err ret = 0;
+	uint8_t mfg_id, dev_id;
+
 	(void)dev;
 
-	/* Just pretend we have a chip with id c03e:b007 */
-	ids[0].id_method = 1;
-	ids[0].vendor_id = 0xc03e;
-	ids[0].device_id = 0xb007;
+	/*
+	 * 0xffbc0000 seems to give us the device IDs, at least on the
+	 * SST 49LF080A when the chip ID[0:3] pins are all strapped to 0.
+	 * Whether this address is valid for any LPC ROM, or is an SST specific
+	 * extension remains to be seen.
+	 * The JEDEC sequence in flashrom and other software (milksop) does not
+	 * use this address.
+	 */
+	ret |= lpc_mread(0xffbc0000, &mfg_id);
+	ret |= lpc_mread(0xffbc0001, &dev_id);
 
-	/* And no second chip */
+	/* Send the ID back to the host */
+	ids[0].id_method = 1;	/* FIXME: Use an enum */
+	ids[0].vendor_id = mfg_id;
+	ids[0].device_id = dev_id;
+
+	/* We only allow connecting one chip. */
 	ids[1].id_method = 0;
 
-	return QIPROG_SUCCESS;
+	/* Tell the host if we encountered an error or not in reading the ID */
+	return ret;
 }
 
 static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
@@ -145,7 +166,7 @@ static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 
 static struct qiprog_driver stellaris_lpc_drv = {
 	.scan = NULL,		/* scan is not used */
-	.dev_open = lpc_init,
+	.dev_open = lpc_open,
 	.get_capabilities = get_capabilities,
 	.set_bus = set_bus,
 	.read_chip_id = read_chip_id,
