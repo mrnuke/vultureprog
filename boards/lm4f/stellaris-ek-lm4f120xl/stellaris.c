@@ -126,10 +126,10 @@ static void irq_setup(void)
 }
 
 #define FLASH_DELAY 800000
-static void delay(void)
+static void delay(int loops)
 {
 	int i;
-	for (i = 0; i < FLASH_DELAY; i++)	/* Wait a bit. */
+	for (i = 0; i < loops; i++)	/* Wait a bit. */
 		__asm__("nop");
 }
 
@@ -148,31 +148,19 @@ int main(void)
 
 	print_info("Peripherals initialized\n");
 
-	/* Blink each color of the RGB LED in order. */
+	/* Blink the green LED briefly to indicate we haven't crashed. */
 	while (1) {
-		/*
-		 * Flash the Red diode
-		 */
-		led_on(LED_R);
-		delay();	/* Wait a bit. */
-		led_off(LED_R);
-		delay();	/* Wait a bit. */
-
 		/*
 		 * Flash the Green diode
 		 */
 		led_on(LED_G);
-		delay();	/* Wait a bit. */
-		led_off(LED_G);
-		delay();	/* Wait a bit. */
-
 		/*
-		 * Flash the Blue diode
+		 * Don't keep the LED on for too long. We might not be able to
+		 * see pulses from other LEDs when we do an LPC cycle.
 		 */
-		led_on(LED_B);
-		delay();	/* Wait a bit. */
-		led_off(LED_B);
-		delay();	/* Wait a bit. */
+		delay(FLASH_DELAY / 10000);	/* Wait a bit. */
+		led_off(LED_G);
+		delay(FLASH_DELAY);	/* Wait a bit. */
 	}
 
 	return 0;

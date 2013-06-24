@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "led.h"
 #include "lpc_io.h"
 
 #include <qiprog_usb_dev.h>
@@ -42,7 +43,7 @@ static qiprog_err lpc_open(struct qiprog_device *dev)
 static qiprog_err get_capabilities(struct qiprog_device *dev,
 				   struct qiprog_capabilities *caps)
 {
-	(void) dev;
+	(void)dev;
 
 	caps->instruction_set = 0;
 	caps->bus_master = QIPROG_BUS_LPC;
@@ -73,6 +74,8 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 
 	(void)dev;
 
+	led_on(LED_B);
+
 	/*
 	 * 0xffbc0000 seems to give us the device IDs, at least on the
 	 * SST 49LF080A when the chip ID[0:3] pins are all strapped to 0.
@@ -92,6 +95,8 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 	/* We only allow connecting one chip. */
 	ids[1].id_method = 0;
 
+	led_off(LED_B);
+
 	/* Tell the host if we encountered an error or not in reading the ID */
 	return ret;
 }
@@ -99,9 +104,14 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
 			uint8_t * data)
 {
+	qiprog_err ret = 0;
 	(void)dev;
 
-	return lpc_mread(addr, data);
+	led_on(LED_B);
+	ret = lpc_mread(addr, data);
+	led_off(LED_B);
+
+	return ret;
 }
 
 static qiprog_err read16(struct qiprog_device *dev, uint32_t addr,
@@ -112,9 +122,11 @@ static qiprog_err read16(struct qiprog_device *dev, uint32_t addr,
 
 	(void)dev;
 
+	led_on(LED_B);
 	/* Read in little-endian order. FIXME: is this the final answer? */
 	ret |= lpc_mread(addr + 0, raw);
 	ret |= lpc_mread(addr + 1, raw + 1);
+	led_off(LED_B);
 
 	return ret;
 }
@@ -126,20 +138,28 @@ static qiprog_err read32(struct qiprog_device *dev, uint32_t addr,
 	qiprog_err ret = 0;
 	(void)dev;
 
+	led_on(LED_B);
 	/* Read in little-endian order. FIXME: is this the final answer? */
 	ret |= lpc_mread(addr + 0, raw + 0);
 	ret |= lpc_mread(addr + 1, raw + 1);
 	ret |= lpc_mread(addr + 2, raw + 2);
 	ret |= lpc_mread(addr + 3, raw + 3);
+	led_off(LED_B);
 
 	return QIPROG_SUCCESS;
 }
 
 static qiprog_err write8(struct qiprog_device *dev, uint32_t addr, uint8_t data)
 {
+	qiprog_err ret = 0;
+
 	(void)dev;
 
-	return lpc_mwrite(addr, data);
+	led_on(LED_R);
+	ret = lpc_mwrite(addr, data);
+	led_off(LED_R);
+
+	return ret;
 }
 
 static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
@@ -150,9 +170,11 @@ static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
 
 	(void)dev;
 
+	led_on(LED_R);
 	/* Write in little-endian order. FIXME: is this the final answer? */
 	ret |= lpc_mwrite(addr + 0, raw[0]);
 	ret |= lpc_mwrite(addr + 1, raw[1]);
+	led_off(LED_R);
 
 	return ret;
 }
@@ -165,11 +187,13 @@ static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 
 	(void)dev;
 
+	led_on(LED_R);
 	/* Write in little-endian order. FIXME: is this the final answer? */
 	ret |= lpc_mwrite(addr + 0, raw[0]);
 	ret |= lpc_mwrite(addr + 1, raw[1]);
 	ret |= lpc_mwrite(addr + 2, raw[2]);
 	ret |= lpc_mwrite(addr + 3, raw[3]);
+	led_off(LED_R);
 
 	return ret;
 }
