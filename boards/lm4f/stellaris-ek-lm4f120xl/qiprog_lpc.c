@@ -100,34 +100,37 @@ static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
 			uint8_t * data)
 {
 	(void)dev;
-	(void)addr;
 
-	/* Pretend we are reading data */
-	*data = 0xa5;
-
-	return QIPROG_SUCCESS;
+	return lpc_mread(addr, data);
 }
 
 static qiprog_err read16(struct qiprog_device *dev, uint32_t addr,
 			 uint16_t * data)
 {
+	uint8_t *raw = (void *)data;
+	qiprog_err ret = 0;
+
 	(void)dev;
-	(void)addr;
 
-	/* Pretend we are reading data */
-	*data = 0xa55a;
+	/* Read in little-endian order. FIXME: is this the final answer? */
+	ret |= lpc_mread(addr + 0, raw);
+	ret |= lpc_mread(addr + 1, raw + 1);
 
-	return QIPROG_SUCCESS;
+	return ret;
 }
 
 static qiprog_err read32(struct qiprog_device *dev, uint32_t addr,
 			 uint32_t * data)
 {
+	uint8_t *raw = (void *)data;
+	qiprog_err ret = 0;
 	(void)dev;
-	(void)addr;
 
-	/* Pretend we are reading data */
-	*data = 0xf05aa50f;
+	/* Read in little-endian order. FIXME: is this the final answer? */
+	ret |= lpc_mread(addr + 0, raw + 0);
+	ret |= lpc_mread(addr + 1, raw + 1);
+	ret |= lpc_mread(addr + 2, raw + 2);
+	ret |= lpc_mread(addr + 3, raw + 3);
 
 	return QIPROG_SUCCESS;
 }
@@ -135,33 +138,40 @@ static qiprog_err read32(struct qiprog_device *dev, uint32_t addr,
 static qiprog_err write8(struct qiprog_device *dev, uint32_t addr, uint8_t data)
 {
 	(void)dev;
-	(void)addr;
-	(void)data;
 
-	/* Pretend write was successful */
-	return QIPROG_SUCCESS;
+	return lpc_mwrite(addr, data);
 }
 
 static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
 			  uint16_t data)
 {
-	(void)dev;
-	(void)addr;
-	(void)data;
+	qiprog_err ret = 0;
+	uint8_t *raw = (void *)&data;
 
-	/* Pretend write was successful */
-	return QIPROG_SUCCESS;
+	(void)dev;
+
+	/* Write in little-endian order. FIXME: is this the final answer? */
+	ret |= lpc_mwrite(addr + 0, raw[0]);
+	ret |= lpc_mwrite(addr + 1, raw[1]);
+
+	return ret;
 }
 
 static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 			  uint32_t data)
 {
-	(void)dev;
-	(void)addr;
-	(void)data;
+	qiprog_err ret = 0;
+	uint8_t *raw = (void *)&data;
 
-	/* Pretend write was successful */
-	return QIPROG_SUCCESS;
+	(void)dev;
+
+	/* Write in little-endian order. FIXME: is this the final answer? */
+	ret |= lpc_mwrite(addr + 0, raw[0]);
+	ret |= lpc_mwrite(addr + 1, raw[1]);
+	ret |= lpc_mwrite(addr + 2, raw[2]);
+	ret |= lpc_mwrite(addr + 3, raw[3]);
+
+	return ret;
 }
 
 static struct qiprog_driver stellaris_lpc_drv = {
