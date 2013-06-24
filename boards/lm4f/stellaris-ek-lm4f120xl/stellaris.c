@@ -18,6 +18,7 @@
  */
 
 #include "stellaris.h"
+#include "led.h"
 
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/lm4f/systemcontrol.h>
@@ -29,14 +30,6 @@
 #include <stdio.h>
 
 #include <blackbox.h>
-
-/* This is how the RGB LED is connected on the stellaris launchpad */
-#define RGB_PORT	GPIOF
-enum {
-	LED_R = GPIO1,
-	LED_G = GPIO3,
-	LED_B = GPIO2,
-};
 
 /* This is how the user switches are connected to GPIOF */
 enum {
@@ -78,10 +71,9 @@ static void clock_setup(void)
 }
 
 /*
- * GPIO setup:
  * Enable the pins driving the RGB LED as outputs.
  */
-static void gpio_setup(void)
+void led_init(void)
 {
 	/*
 	 * Configure GPIOF
@@ -92,6 +84,17 @@ static void gpio_setup(void)
 
 	gpio_mode_setup(RGB_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, opins);
 	gpio_set_output_config(RGB_PORT, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, opins);
+}
+
+/*
+ * GPIO setup:
+ * Enable pins connected to the buttons
+ */
+static void gpio_setup(void)
+{
+
+	/* Enable the GPIO port */
+	periph_clock_enable(RCC_GPIOF);
 
 	/*
 	 * Now take care of our buttons
@@ -139,6 +142,7 @@ int main(void)
 	print_info("\nVultureprog: QiProg for the Stellaris Launchpad\n");
 
 	gpio_setup();
+	led_init();
 	irq_setup();
 	stellaris_usb_init();
 
@@ -149,25 +153,25 @@ int main(void)
 		/*
 		 * Flash the Red diode
 		 */
-		gpio_set(RGB_PORT, LED_R);
+		led_on(LED_R);
 		delay();	/* Wait a bit. */
-		gpio_clear(RGB_PORT, LED_R);
+		led_off(LED_R);
 		delay();	/* Wait a bit. */
 
 		/*
 		 * Flash the Green diode
 		 */
-		gpio_set(RGB_PORT, LED_G);
+		led_on(LED_G);
 		delay();	/* Wait a bit. */
-		gpio_clear(RGB_PORT, LED_G);
+		led_off(LED_G);
 		delay();	/* Wait a bit. */
 
 		/*
 		 * Flash the Blue diode
 		 */
-		gpio_set(RGB_PORT, LED_B);
+		led_on(LED_B);
 		delay();	/* Wait a bit. */
-		gpio_clear(RGB_PORT, LED_B);
+		led_off(LED_B);
 		delay();	/* Wait a bit. */
 	}
 
