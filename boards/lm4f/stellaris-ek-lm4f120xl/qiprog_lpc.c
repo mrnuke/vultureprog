@@ -198,12 +198,44 @@ static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 	return ret;
 }
 
+static qiprog_err set_address(struct qiprog_device *dev, uint32_t start,
+			      uint32_t end)
+{
+	dev->curr_addr_range.start_address = start;
+	dev->curr_addr_range.max_address = end;
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
+{
+	int ret = 0;
+	size_t i;
+	uint32_t req_len, where;
+
+	(void)dev;
+
+	where = dev->curr_addr_range.start_address;
+	req_len = dev->curr_addr_range.max_address - where;
+	n = (req_len > n) ? n : req_len;
+
+	led_on(LED_B);
+	for (i = 0; i < n; i++)
+		ret |= lpc_mread(where++, dest + i);
+	led_off(LED_B);
+
+	dev->curr_addr_range.start_address += n;
+
+	return ret;
+}
+
 static struct qiprog_driver stellaris_lpc_drv = {
 	.scan = NULL,		/* scan is not used */
 	.dev_open = lpc_open,
 	.get_capabilities = get_capabilities,
 	.set_bus = set_bus,
 	.read_chip_id = read_chip_id,
+	.set_address = set_address,
+	.readn = readn,
 	.read8 = read8,
 	.read16 = read16,
 	.read32 = read32,
