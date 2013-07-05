@@ -179,7 +179,7 @@ static int qiprog_control_request(usbd_device * usbd_dev,
 					    buf, len);
 
 	if (ret != QIPROG_SUCCESS) {
-		print_err("Request was not handled\n");
+		print_err("Request was not handled, code %i\n", ret);
 	}
 	/* ACK or STALL based on whether QiProg handles the request */
 	return (ret == QIPROG_SUCCESS);
