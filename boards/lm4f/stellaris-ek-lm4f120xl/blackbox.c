@@ -58,7 +58,7 @@ void blackbox_init(void)
 
 void hard_fault_handler(void)
 {
-	u32 reg32;
+	uint32_t reg32;
 
 	print_emerg("Hard fault occured\n");
 

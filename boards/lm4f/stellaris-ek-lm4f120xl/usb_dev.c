@@ -40,7 +40,7 @@ typedef void (**usb_complete_cb) (usbd_device * usbd_dev,
 				  struct usb_setup_data * req);
 
 usbd_device *qiprog_dev;
-u8 usbd_control_buffer[128];
+uint8_t usbd_control_buffer[128];
 extern usbd_driver lm4f_usb_driver;
 
 /* =============================================================================
@@ -131,7 +131,7 @@ static const char *usb_strings[] = {
  * = USB "glue"
  * ---------------------------------------------------------------------------*/
 
-static void ep1_out_rx_cb(usbd_device * usbd_dev, u8 ep)
+static void ep1_out_rx_cb(usbd_device * usbd_dev, uint8_t ep)
 {
 	(void)ep;
 	(void)usbd_dev;
@@ -141,7 +141,7 @@ static void ep1_out_rx_cb(usbd_device * usbd_dev, u8 ep)
 	print_spew("EP 1 OUT: received some data\n");
 }
 
-static void ep1_in_tx_cb(usbd_device * usbd_dev, u8 ep)
+static void ep1_in_tx_cb(usbd_device * usbd_dev, uint8_t ep)
 {
 	(void)ep;
 	(void)usbd_dev;
@@ -155,8 +155,8 @@ static void ep1_in_tx_cb(usbd_device * usbd_dev, u8 ep)
  * Link control requests to QiProg logic
  */
 static int qiprog_control_request(usbd_device * usbd_dev,
-				  struct usb_setup_data *req, u8 ** buf,
-				  u16 * len, usb_complete_cb complete)
+				  struct usb_setup_data *req, uint8_t ** buf,
+				  uint16_t * len, usb_complete_cb complete)
 {
 	qiprog_err ret;
 
@@ -191,7 +191,7 @@ extern struct qiprog_device stellaris_lpc_dev;
  *
  * Called after the host issues a SetConfiguration request.
  */
-static void set_config(usbd_device * usbd_dev, u16 wValue)
+static void set_config(usbd_device * usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
 	print_info("Configuring endpoints.\n\r");
@@ -225,7 +225,7 @@ static void usb_pins_setup(void)
  */
 static void usb_ints_setup(void)
 {
-	u8 usbints;
+	uint8_t usbints;
 	/* Gimme some interrupts */
 	usbints = USB_INT_RESET | USB_INT_DISCON | USB_INT_RESUME |
 	    USB_INT_SUSPEND;

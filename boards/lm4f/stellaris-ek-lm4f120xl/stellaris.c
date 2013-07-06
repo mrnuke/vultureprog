@@ -46,7 +46,7 @@ enum {
 	PLL_DIV_16MHZ = 25,
 };
 
-static const u8 plldiv[] = {
+static const uint8_t plldiv[] = {
 	PLL_DIV_80MHZ,
 	PLL_DIV_57MHZ,
 	PLL_DIV_40MHZ,
@@ -80,7 +80,7 @@ void led_init(void)
 	 * This port is used to control the RGB LED
 	 */
 	periph_clock_enable(RCC_GPIOF);
-	const u32 opins = (LED_R | LED_G | LED_B);
+	const uint32_t opins = (LED_R | LED_G | LED_B);
 
 	gpio_mode_setup(RGB_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, opins);
 	gpio_set_output_config(RGB_PORT, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, opins);
@@ -99,7 +99,7 @@ static void gpio_setup(void)
 	/*
 	 * Now take care of our buttons
 	 */
-	const u32 btnpins = USR_SW1 | USR_SW2;
+	const uint32_t btnpins = USR_SW1 | USR_SW2;
 
 	/*
 	 * PF0 is a locked by default. We need to unlock it before we can
@@ -116,7 +116,7 @@ static void gpio_setup(void)
  */
 static void irq_setup(void)
 {
-	const u32 btnpins = USR_SW1 | USR_SW2;
+	const uint32_t btnpins = USR_SW1 | USR_SW2;
 	/* Trigger interrupt on rising-edge (when button is depressed) */
 	gpio_configure_trigger(GPIOF, GPIO_TRIG_EDGE_RISE, btnpins);
 	/* Finally, Enable interrupt */
