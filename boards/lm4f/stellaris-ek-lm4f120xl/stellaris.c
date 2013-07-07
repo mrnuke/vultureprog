@@ -125,12 +125,23 @@ static void irq_setup(void)
 	nvic_enable_irq(NVIC_GPIOF_IRQ);
 }
 
-#define FLASH_DELAY 800000
-static void delay(int loops)
+/*
+ * Flash the Green diode, asynchronously
+ *
+ * Yes, this will flash at different speeds, depending on how busy the main loop
+ * is. That is fine. The green LED is only used to indicate that the firmware is
+ * still alive.
+ */
+static void handle_led(void)
 {
-	int i;
-	for (i = 0; i < loops; i++)	/* Wait a bit. */
-		__asm__("nop");
+	static int count = 0;
+
+	if((++count) == 10000 && (count > 0)) {
+		led_on(LED_G);
+		count = -100;
+	} else if (count == 0) {
+		led_off(LED_G);
+	}
 }
 
 int main(void)
@@ -148,19 +159,9 @@ int main(void)
 
 	print_info("Peripherals initialized\n");
 
-	/* Blink the green LED briefly to indicate we haven't crashed. */
+	/* The magic that doesn't happen in USB interrupts, happens here */
 	while (1) {
-		/*
-		 * Flash the Green diode
-		 */
-		led_on(LED_G);
-		/*
-		 * Don't keep the LED on for too long. We might not be able to
-		 * see pulses from other LEDs when we do an LPC cycle.
-		 */
-		delay(FLASH_DELAY / 10000);	/* Wait a bit. */
-		led_off(LED_G);
-		delay(FLASH_DELAY);	/* Wait a bit. */
+		handle_led();
 	}
 
 	return 0;
