@@ -175,13 +175,13 @@ static inline uint8_t lpc_read8(void)
  */
 static inline void lpc_write8(uint8_t data)
 {
-	/* Most Significant Nibble */
-	lad_write(data >> 4);
+	/* Least-Significant Nibble */
+	lad_write(data);
 	clk_high();
 	clk_low();
 
-	/* Least-Significant Nibble */
-	lad_write(data);
+	/* Most Significant Nibble */
+	lad_write(data >> 4);
 	clk_high();
 	clk_low();
 }
