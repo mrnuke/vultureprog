@@ -20,6 +20,7 @@
 ##
 
 PREFIX		?= arm-none-eabi
+FP_FLAGS	?= -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CC		= $(PREFIX)-gcc
 LD		= $(PREFIX)-gcc
 OBJCOPY		= $(PREFIX)-objcopy
@@ -39,7 +40,7 @@ $(info We seem to be building the example in the source directory. Using local l
 endif
 endif
 
-ARCH_FLAGS	= -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+ARCH_FLAGS	= -mthumb -mcpu=cortex-m4 $(FP_FLAGS)
 CFLAGS		+= -O0 -g3 \
 		   -Wall -Wextra -Wimplicit-function-declaration \
 		   -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \

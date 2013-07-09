@@ -92,20 +92,21 @@ and less as "user options". They include:
 Troubleshooting
 ---------------
 
-> arm-none-eabi/bin/ld: cannot find -lnosys
+##### arm-none-eabi/bin/ld: cannot find -lnosys
 
 Your toolchain does not provide libnosys. Please update your toolchain.
 
-> [file].elf uses VFP register arguments, [library].a does not
+##### [file].elf uses VFP register arguments, [library].a does not
 
 Your toolchain does not link against supporting libraries compiled with
 "-mfloat-abi=hard -mfpu=fpv4-sp-d16". You have a number of options:
 
 1. Update your toolchain to link against hard-float libraries.
-2. Scour the makefiles (including libopencm3 submodule) and remove
-    "-mfloat-abi=hard -mfpu=fpv4-sp-d16" from compiler and linker flags. Please
-    note that this is not suitable for inclusion upstream.
+2. Build everything with a soft-float ABI:
 
+> $ make clean
+
+> $ FP_FLAGS="" make
 
 
 Copyright and license
