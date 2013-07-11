@@ -80,6 +80,15 @@ static inline void lad_write(uint8_t dat4)
  */
 static inline uint8_t lad_read(void)
 {
+	/*
+	 * Writing then reading to a GPIO port does not guarantee that the input
+	 * data is latched after the output has been driven. This effect can be
+	 * observed regardless of the clock frequency. A memory barrier does not
+	 * solve the issue; however a delay of at least four "nop" ensures that
+	 * the data is latched after the output has been written. The four "nop"
+	 * delay is independent of the core clock.
+	 */
+	asm("nop"); asm("nop");asm("nop");asm("nop");
 	return gpio_read(GPIOD, LADPINS);
 }
 
