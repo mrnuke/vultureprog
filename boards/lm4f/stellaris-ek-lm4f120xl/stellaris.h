@@ -20,10 +20,6 @@
 #ifndef STELLARIS_H
 #define STELLARIS_H
 
-/* FIXME: move to QiProg API when appropriate */
-#define VULTUREPROG_USB_VID	0x1d50
-#define VULTUREPROG_USB_PID	0x6076
-
 /* usb_dev.c */
 void stellaris_usb_init(void);
 
