@@ -151,6 +151,26 @@ static void ep1_in_tx_cb(usbd_device * usbd_dev, uint8_t ep)
 	print_spew("EP 1 IN: packet transmitted\n");
 }
 
+static uint16_t send_packet(void *data, uint16_t len)
+{
+	/* Only send the packet if we receive an IN token */
+	if (USB_TXCSRL(1) & USB_TXCSRL_UNDRN)
+		return usbd_ep_write_packet(qiprog_dev, 0x81, data, len);
+	else
+		return 0;
+}
+
+static uint16_t read_packet(void *data, uint16_t len)
+{
+	/* FIXME: Not implemented */
+	(void)data;
+	(void)len;
+
+	return 0;
+}
+
+static uint8_t qiprog_buf[256];
+
 /*
  * Link control requests to QiProg logic
  */
@@ -206,6 +226,9 @@ static void set_config(usbd_device * usbd_dev, uint16_t wValue)
 				       qiprog_control_request);
 
 	qiprog_change_device(&stellaris_lpc_dev);
+
+	qiprog_usb_dev_init(send_packet, read_packet, 64, 64, qiprog_buf);
+
 	print_info("Done.\n\r");
 }
 
