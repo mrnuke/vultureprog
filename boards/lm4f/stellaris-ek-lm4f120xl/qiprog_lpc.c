@@ -20,6 +20,7 @@
 #include "led.h"
 #include "lpc_io.h"
 
+#include <blackbox.h>
 #include <qiprog_usb_dev.h>
 
 static struct qiprog_driver stellaris_lpc_drv;
@@ -201,6 +202,7 @@ static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 static qiprog_err set_address(struct qiprog_device *dev, uint32_t start,
 			      uint32_t end)
 {
+	print_spew("Setting address range 0x%.8lx -> 0x%.8lx\n", start, end);
 	dev->curr_addr_range.start_address = start;
 	dev->curr_addr_range.max_address = end;
 	return QIPROG_SUCCESS;
