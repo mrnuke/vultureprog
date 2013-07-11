@@ -20,6 +20,8 @@
 #include "stellaris.h"
 #include "led.h"
 
+#include <qiprog_usb_dev.h>
+
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/lm4f/systemcontrol.h>
 #include <libopencm3/lm4f/rcc.h>
@@ -161,6 +163,7 @@ int main(void)
 
 	/* The magic that doesn't happen in USB interrupts, happens here */
 	while (1) {
+		qiprog_handle_events();
 		handle_led();
 	}
 
