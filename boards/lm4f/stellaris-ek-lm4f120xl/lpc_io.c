@@ -34,15 +34,21 @@ void lpc_init(void)
 {
 	uint8_t pins;
 
+	/*
+	 * The default drive strength is 2mA. Depending on how fast we turn the
+	 * bus and the layout of the tracks/wires, this may or may not be
+	 * sufficient. 8mA drive gives more consistent results, even with long
+	 * wires, so use this setting for the time being.
+	 */
 	periph_clock_enable(RCC_GPIOD);
 	pins = GPIO0 | GPIO1 | GPIO2 | GPIO3;
 	gpio_mode_setup(GPIOD, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, pins);
-	gpio_set_output_config(GPIOD, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, pins);
+	gpio_set_output_config(GPIOD, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, pins);
 
 	periph_clock_enable(RCC_GPIOE);
 	pins = GPIO1 | GPIO2;
 	gpio_mode_setup(GPIOE, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, pins);
-	gpio_set_output_config(GPIOE, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, pins);
+	gpio_set_output_config(GPIOE, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, pins);
 }
 
 /**
