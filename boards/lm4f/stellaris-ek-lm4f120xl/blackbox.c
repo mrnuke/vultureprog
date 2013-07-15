@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <libopencm3/lm4f/rcc.h>
 #include <libopencm3/lm4f/gpio.h>
@@ -114,25 +115,27 @@ void hard_fault_handler(void)
 	while (1) ;
 }
 
-/* libnosys prototypes are not visible in any #include */
-int _write(int file, char *ptr, int len);
-
-/*
- * Handle file IO. stdout goes to UART0. Everything else is ignored.
- */
-int _write(int file, char *ptr, int len)
+static void send_uart(char *ptr, int len)
 {
 	int i;
 
-	if (file == 1) {
-		for (i = 0; i < len; i++) {
-			if (ptr[i] == '\n')
-				uart_send_blocking(UART0, '\r');
-			uart_send_blocking(UART0, ptr[i]);
-		}
-		return i;
+	for (i = 0; i < len; i++) {
+		if (ptr[i] == '\n')
+			uart_send_blocking(UART0, '\r');
+		uart_send_blocking(UART0, ptr[i]);
 	}
+}
 
-	errno = EIO;
-	return -1;
+/*
+ * Route debug output to UART0
+ */
+void print_blackbox(const char *format, ...)
+{
+	char buffer[256];
+	int len;
+	va_list args;
+	va_start(args, format);
+	len = vsnprintf(buffer, sizeof(buffer), format, args);
+	send_uart(buffer, len);
+	va_end(args);
 }

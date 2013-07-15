@@ -49,7 +49,7 @@
 #define printk(LEVEL, fmt, ...)					\
 	do {							\
 		if (CONFIG_LOGLEVEL >= LEVEL)			\
-			printf(fmt, ##__VA_ARGS__);		\
+			print_blackbox(fmt, ##__VA_ARGS__);	\
 								\
 	} while(0)
 #else				/* CONFIG_ENABLE_CONSOLE */
@@ -81,7 +81,7 @@ enum log_level {
 
 /* Initialize the debugging subsystem */
 void blackbox_init(void);
-
+void print_blackbox(const char *format, ...);
 /** @} */
 
 #endif				/* BLACKBOX_H */
