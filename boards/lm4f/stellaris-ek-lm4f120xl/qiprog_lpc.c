@@ -167,14 +167,13 @@ static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
 			  uint16_t data)
 {
 	qiprog_err ret = 0;
-	uint8_t *raw = (void *)&data;
 
 	(void)dev;
 
 	led_on(LED_R);
 	/* Write in little-endian order. FIXME: is this the final answer? */
-	ret |= lpc_mwrite(addr + 0, raw[0]);
-	ret |= lpc_mwrite(addr + 1, raw[1]);
+	ret |= lpc_mwrite(addr + 0, (data >> 0) & 0xff);
+	ret |= lpc_mwrite(addr + 1, (data >> 8) & 0xff);
 	led_off(LED_R);
 
 	return ret;
@@ -184,16 +183,15 @@ static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 			  uint32_t data)
 {
 	qiprog_err ret = 0;
-	uint8_t *raw = (void *)&data;
 
 	(void)dev;
 
 	led_on(LED_R);
 	/* Write in little-endian order. FIXME: is this the final answer? */
-	ret |= lpc_mwrite(addr + 0, raw[0]);
-	ret |= lpc_mwrite(addr + 1, raw[1]);
-	ret |= lpc_mwrite(addr + 2, raw[2]);
-	ret |= lpc_mwrite(addr + 3, raw[3]);
+	ret |= lpc_mwrite(addr + 0, (data >> 0) & 0xff);
+	ret |= lpc_mwrite(addr + 1, (data >> 8) & 0xff);
+	ret |= lpc_mwrite(addr + 2, (data >> 16) & 0xff);
+	ret |= lpc_mwrite(addr + 3, (data >> 24) & 0xff);
 	led_off(LED_R);
 
 	return ret;
