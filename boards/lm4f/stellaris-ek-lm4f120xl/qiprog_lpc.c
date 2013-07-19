@@ -214,13 +214,13 @@ static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
 
 	(void)dev;
 
+	uint8_t *dst = dest;
 	where = dev->curr_addr_range.start_address;
 	req_len = dev->curr_addr_range.max_address - where;
 	n = (req_len > n) ? n : req_len;
 
 	led_on(LED_B);
-	for (i = 0; i < n; i++)
-		ret |= lpc_mread(where++, dest + i);
+	ret = lpc_mreadn(where, dest, n);
 	led_off(LED_B);
 
 	dev->curr_addr_range.start_address += n;

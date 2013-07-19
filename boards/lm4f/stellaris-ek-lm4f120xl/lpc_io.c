@@ -264,7 +264,7 @@ static inline uint8_t lpc_tar_to_host(void)
 /**
  * @brief Do an LPC memory read cycle
  */
-qiprog_err lpc_mread(uint32_t addr, uint8_t * val8)
+inline qiprog_err lpc_mread(uint32_t addr, uint8_t * val8)
 {
 	uint8_t data;
 	uint8_t tar1_12, rsync;
@@ -304,6 +304,14 @@ qiprog_err lpc_mread(uint32_t addr, uint8_t * val8)
 
 	*val8 = data;
 	return QIPROG_SUCCESS;
+}
+
+qiprog_err lpc_mreadn(uint32_t addr, uint8_t *dst, uint32_t n)
+{
+	int ret;
+	while(n--)
+		ret |= lpc_mread(addr++, dst++);
+	return ret;
 }
 
 /**
