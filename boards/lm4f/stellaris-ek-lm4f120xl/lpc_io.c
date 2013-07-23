@@ -23,32 +23,81 @@
 #include <libopencm3/lm4f/rcc.h>
 #include <libopencm3/lm4f/gpio.h>
 
+/* LAD[3:0] */
+#define LADPORT		GPIOB
 #define LADPINS		(GPIO0 | GPIO1 | GPIO2 | GPIO3)
+/* LCLK */
+#define CLKPORT		GPIOC
+#define CLKPIN		(GPIO5)
+/* #LFRAME */
+#define LFPORT		GPIOD
+#define LFPIN		(GPIO2)
+/* ID[3:0] */
+#define IDPORT		GPIOE
+#define IDPINS		(GPIO0 | GPIO1 | GPIO2 | GPIO3)
+/* MODE and #CE pins */
+#define CTLPORT		GPIOA
+#define MODEPIN		(GPIO4)
+#define CEPIN		(GPIO3)
+#define RSTPIN		(GPIO6)
+
+#include <blackbox.h>
+
 /*
- * GPIOD[3:0] <-> LDAT[3:0]
- * GPIOE1 <-> CLK
- * GPIOE2 <-> #LFRAME
+ * GPIOE[3:0] <-> LDAT[3:0]
+ * GPIOC5 <-> CLK
+ * GPIOD2 <-> #LFRAME
  */
 
 void lpc_init(void)
 {
 	uint8_t pins;
+	/* We use all GPIO ports from GPIOA to GPIOE */
+	/* GPIOA will have been enabled by the UART */
+	periph_clock_enable(RCC_GPIOB);
+	periph_clock_enable(RCC_GPIOC);
+	/* GPIOD will have been enabled by USB */
+	periph_clock_enable(RCC_GPIOE);
 
+	/* All unused pins are pulled high. We must be careful to not touch pins
+	 * us ed by other peripherals. */
+	pins = GPIO_ALL & ~(GPIO0 | GPIO1);
+	gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, pins);
+	gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO_ALL);
+	pins = GPIO4 | GPIO5 | GPIO6 | GPIO7;
+	gpio_mode_setup(GPIOC, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, pins);
+	pins = GPIO_ALL & ~(GPIO4 | GPIO5);
+	gpio_mode_setup(GPIOD, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, pins);
+	gpio_mode_setup(GPIOE, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO_ALL);
 	/*
 	 * The default drive strength is 2mA. Depending on how fast we turn the
 	 * bus and the layout of the tracks/wires, this may or may not be
 	 * sufficient. 8mA drive gives more consistent results, even with long
 	 * wires, so use this setting for the time being.
 	 */
-	periph_clock_enable(RCC_GPIOD);
-	pins = GPIO0 | GPIO1 | GPIO2 | GPIO3;
-	gpio_mode_setup(GPIOD, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, pins);
-	gpio_set_output_config(GPIOD, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, pins);
+	gpio_mode_setup(LADPORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, LADPINS);
+	gpio_set_output_config(LADPORT, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, LADPINS);
 
-	periph_clock_enable(RCC_GPIOE);
-	pins = GPIO1 | GPIO2;
-	gpio_mode_setup(GPIOE, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, pins);
-	gpio_set_output_config(GPIOE, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, pins);
+	gpio_mode_setup(CLKPORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, CLKPIN);
+	gpio_set_output_config(CLKPORT, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, CLKPIN);
+
+	gpio_mode_setup(LFPORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LFPIN);
+	gpio_set_output_config(LFPORT, GPIO_OTYPE_PP, GPIO_DRIVE_8MA, LFPIN);
+
+	gpio_mode_setup(IDPORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, IDPINS);
+	gpio_set_output_config(IDPORT, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, IDPINS);
+	/* Set ID pins to 0 (boot device) */
+	gpio_clear(IDPORT, IDPINS);
+
+	pins = RSTPIN | CEPIN | MODEPIN;
+	gpio_mode_setup(CTLPORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, pins);
+	gpio_set_output_config(CTLPORT, GPIO_OTYPE_PP, GPIO_DRIVE_2MA, pins);
+
+	/* Put chip in LPC mode, select #CE, and put chip in reset */
+	gpio_clear(CTLPORT, pins);
+	print_spew("This line is used to delay until RESET is released.\n");
+	/* Release reset. the chip is now ready */
+	gpio_set(CTLPORT, GPIO6);
 }
 
 /**
@@ -56,7 +105,7 @@ void lpc_init(void)
  */
 static inline void lad_mode_in(void)
 {
-	GPIO_DIR(GPIOD) &= ~LADPINS;
+	GPIO_DIR(LADPORT) &= ~LADPINS;
 }
 
 /**
@@ -64,7 +113,7 @@ static inline void lad_mode_in(void)
  */
 static inline void lad_mode_out(void)
 {
-	GPIO_DIR(GPIOD) |= LADPINS;
+	GPIO_DIR(LADPORT) |= LADPINS;
 }
 
 /**
@@ -78,7 +127,7 @@ static inline void lad_write(uint8_t dat4)
 	 * pins without needing shifting.
 	 * The same reasoning applies in lad_read().
 	 */
-	gpio_write(GPIOD, LADPINS, dat4);
+	gpio_write(LADPORT, LADPINS, dat4);
 }
 
 /**
@@ -95,7 +144,7 @@ static inline uint8_t lad_read(void)
 	 * delay is independent of the core clock.
 	 */
 	asm("nop"); asm("nop");asm("nop");asm("nop");
-	return gpio_read(GPIOD, LADPINS);
+	return gpio_read(LADPORT, LADPINS);
 }
 
 /**
@@ -103,7 +152,7 @@ static inline uint8_t lad_read(void)
  */
 static inline void clk_high(void)
 {
-	gpio_set(GPIOE, GPIO1);
+	gpio_set(CLKPORT, CLKPIN);
 }
 
 /**
@@ -111,7 +160,7 @@ static inline void clk_high(void)
  */
 static inline void clk_low(void)
 {
-	gpio_clear(GPIOE, GPIO1);
+	gpio_clear(CLKPORT, CLKPIN);
 }
 
 /**
@@ -119,7 +168,7 @@ static inline void clk_low(void)
  */
 static inline void lframe_high(void)
 {
-	gpio_set(GPIOE, GPIO2);
+	gpio_set(LFPORT, LFPIN);
 }
 
 /**
@@ -127,7 +176,7 @@ static inline void lframe_high(void)
  */
 static inline void lframe_low(void)
 {
-	gpio_clear(GPIOE, GPIO2);
+	gpio_clear(LFPORT, LFPIN);
 }
 
 /**
