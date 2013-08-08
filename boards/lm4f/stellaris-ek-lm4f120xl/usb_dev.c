@@ -152,11 +152,7 @@ static uint16_t send_packet(void *data, uint16_t len)
 
 static uint16_t read_packet(void *data, uint16_t len)
 {
-	/* FIXME: Not implemented */
-	(void)data;
-	(void)len;
-
-	return 0;
+	return usbd_ep_read_packet(qiprog_dev, 0x01, data, len);
 }
 
 static uint8_t qiprog_buf[256];
