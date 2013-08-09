@@ -131,16 +131,6 @@ static const char *usb_strings[] = {
  * = USB "glue"
  * ---------------------------------------------------------------------------*/
 
-static void ep1_out_rx_cb(usbd_device * usbd_dev, uint8_t ep)
-{
-	(void)ep;
-	(void)usbd_dev;
-
-	/* TODO: Connect to QiProg logic */
-
-	print_spew("EP 1 OUT: received some data\n");
-}
-
 static uint16_t send_packet(void *data, uint16_t len)
 {
 	/* Only send the packet if we receive an IN token */
@@ -201,8 +191,7 @@ static void set_config(usbd_device * usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
 	print_info("Configuring endpoints.\n\r");
-	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64,
-		      ep1_out_rx_cb);
+	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64, NULL);
 	usbd_ep_setup(usbd_dev, 0x81, USB_ENDPOINT_ATTR_BULK, 64, NULL);
 
 	usbd_register_control_callback(usbd_dev,
