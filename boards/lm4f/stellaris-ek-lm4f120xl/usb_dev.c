@@ -227,7 +227,8 @@ static void usb_ints_setup(void)
 	/* Gimme some interrupts */
 	usbints = USB_INT_RESET | USB_INT_DISCON | USB_INT_RESUME |
 	    USB_INT_SUSPEND;
-	usb_enable_interrupts(usbints, 0xff, 0xff);
+	/* Do not enable TX or RX callback interrupts */
+	usb_enable_interrupts(usbints, 0, 0);
 	nvic_enable_irq(NVIC_USB0_IRQ);
 }
 
