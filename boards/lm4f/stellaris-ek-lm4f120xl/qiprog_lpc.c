@@ -22,6 +22,7 @@
 
 #include <blackbox.h>
 #include <qiprog_usb_dev.h>
+#include <jedec_flash.h>
 
 static struct qiprog_driver stellaris_lpc_drv;
 
@@ -228,6 +229,34 @@ static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
 	return ret;
 }
 
+static qiprog_err writen(struct qiprog_device *dev, void *src, uint32_t n)
+{
+	int ret = 0;
+	size_t i;
+	uint32_t req_len, where;
+	uint8_t *data = src;
+
+	where = dev->curr_addr_range.start_address;
+	req_len = dev->curr_addr_range.max_address - where;
+	n = (req_len > n) ? n : req_len;
+
+	/*
+	 * A few things to note:
+	 * We may want to optimize the loop to reduce the number of function
+	 * calls and the bus idle time.
+	 * We currently use a mask of 0xffff, but we may want to detect the
+	 * correct mask and use that instead.
+	 */
+	led_on(LED_R);
+	for (i = 0; i < n; i++)
+		ret |= jedec_program_byte(dev, where++, data[i], 0xffff);
+	led_off(LED_R);
+
+	dev->curr_addr_range.start_address += n;
+
+	return ret;
+}
+
 static struct qiprog_driver stellaris_lpc_drv = {
 	.scan = NULL,		/* scan is not used */
 	.dev_open = lpc_open,
@@ -239,6 +268,7 @@ static struct qiprog_driver stellaris_lpc_drv = {
 	.read8 = read8,
 	.read16 = read16,
 	.read32 = read32,
+	.writen = writen,
 	.write8 = write8,
 	.write16 = write16,
 	.write32 = write32,
