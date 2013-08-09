@@ -26,9 +26,10 @@ OBJS += blackbox.o \
         lpc_io.o \
 	core.o \
 	qiprog_usb_device.o \
-	qiprog_lpc.o
+	qiprog_lpc.o \
+	jedec_flash.o
 
-VPATH += ../../../qiprog/libqiprog/src
+VPATH += ../../../qiprog/libqiprog/src ../../../src
 
 include ../Makefile.include
 
