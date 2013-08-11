@@ -153,17 +153,23 @@ qiprog_err jedec_probe(struct qiprog_device *dev, struct qiprog_chip_id *id,
 	}
 
 	/*
-	 * If we couldn't find a valid chip, id->id_method will be zero. Not
-	 * having responded to our probes is fine, and the condition indicated
-	 * by id->id_method, but refusing to exit ID mode is certain to cause
-	 * issues down the road.
+	 * If we couldn't find a valid chip, id->id_method will be
+	 * QIPROG_ID_INVALID to indicate this. Not having responded to our
+	 * probes is fine.
 	 */
 	id->vendor_id = vid;
 	id->device_id = pid;
 	*cmd_mask = mask;
 
 	/* We MUST reach this line to get the chip out of read ID mode */
-	return jedec_send_cmd(dev, base, mask, JEDEC_CMD_EXIT_ID_READ);
+	jedec_send_cmd(dev, base, mask, JEDEC_CMD_EXIT_ID_READ);
+
+	/*
+	 * Irrespective of having found a chip, We should always return
+	 * gracefully. The host will figure out no chip was found by the
+	 * QIPROG_ID_INVALID value of the id_method field.
+	 */
+	return QIPROG_SUCCESS;
 }
 
 /**
