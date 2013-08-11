@@ -73,29 +73,23 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 {
 	qiprog_err ret = 0;
 	uint8_t mfg_id, dev_id;
+	uint32_t mask;
 
 	(void)dev;
 
 	led_on(LED_B);
 
 	/*
-	 * 0xffbc0000 seems to give us the device IDs, at least on the
-	 * SST 49LF080A when the chip ID[0:3] pins are all strapped to 0.
-	 * Whether this address is valid for any LPC ROM, or is an SST specific
-	 * extension remains to be seen.
-	 * The JEDEC sequence in flashrom and other software (milksop) does not
-	 * use this address.
+	 * Run the JEDEC probing sequence. Most, if not all LPC chips support
+	 * it.
+	 * TODO: Do not worry about saving the command mask for now. We do not
+	 * yet know if we want to use the mask we got from probing, or a mask
+	 * supplied by the host.
 	 */
-	ret |= lpc_mread(0xffbc0000, &mfg_id);
-	ret |= lpc_mread(0xffbc0001, &dev_id);
-
-	/* Send the ID back to the host */
-	ids[0].id_method = 1;	/* FIXME: Use an enum */
-	ids[0].vendor_id = mfg_id;
-	ids[0].device_id = dev_id;
+	ret = jedec_probe(dev, ids, 0xffff0000, &mask);
 
 	/* We only allow connecting one chip. */
-	ids[1].id_method = 0;
+	ids[1].id_method = QIPROG_ID_INVALID;
 
 	led_off(LED_B);
 
