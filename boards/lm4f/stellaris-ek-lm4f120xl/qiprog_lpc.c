@@ -196,8 +196,8 @@ static qiprog_err set_address(struct qiprog_device *dev, uint32_t start,
 			      uint32_t end)
 {
 	print_spew("Setting address range 0x%.8lx -> 0x%.8lx\n", start, end);
-	dev->curr_addr_range.start_address = start;
-	dev->curr_addr_range.max_address = end;
+	dev->addr.start = start;
+	dev->addr.end = end;
 	return QIPROG_SUCCESS;
 }
 
@@ -209,8 +209,8 @@ static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
 
 	(void)dev;
 
-	where = dev->curr_addr_range.start_address;
-	req_len = dev->curr_addr_range.max_address - where;
+	where = dev->addr.start;
+	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
 
 	led_on(LED_B);
@@ -218,7 +218,7 @@ static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
 		ret |= lpc_mread(where++, dest + i);
 	led_off(LED_B);
 
-	dev->curr_addr_range.start_address += n;
+	dev->addr.start += n;
 
 	return ret;
 }
@@ -230,8 +230,8 @@ static qiprog_err writen(struct qiprog_device *dev, void *src, uint32_t n)
 	uint32_t req_len, where;
 	uint8_t *data = src;
 
-	where = dev->curr_addr_range.start_address;
-	req_len = dev->curr_addr_range.max_address - where;
+	where = dev->addr.start;
+	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
 
 	/*
@@ -246,7 +246,7 @@ static qiprog_err writen(struct qiprog_device *dev, void *src, uint32_t n)
 		ret |= jedec_program_byte(dev, where++, data[i], 0xffff);
 	led_off(LED_R);
 
-	dev->curr_addr_range.start_address += n;
+	dev->addr.start += n;
 
 	return ret;
 }
