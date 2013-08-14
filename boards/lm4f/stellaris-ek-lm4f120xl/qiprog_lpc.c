@@ -202,15 +202,15 @@ static qiprog_err set_address(struct qiprog_device *dev, uint32_t start,
 	return QIPROG_SUCCESS;
 }
 
-static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
+static qiprog_err read(struct qiprog_device *dev, uint32_t where, void *dest,
+		       uint32_t n)
 {
 	int ret = 0;
 	size_t i;
-	uint32_t req_len, where;
+	uint32_t req_len;
 
 	(void)dev;
 
-	where = dev->addr.start;
 	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
 
@@ -219,19 +219,20 @@ static qiprog_err readn(struct qiprog_device *dev, void *dest, uint32_t n)
 		ret |= lpc_mread(where++, dest + i);
 	led_off(LED_B);
 
-	dev->addr.start += n;
+	/* Update the read pointer */
+	dev->addr.pread = where;
 
 	return ret;
 }
 
-static qiprog_err writen(struct qiprog_device *dev, void *src, uint32_t n)
+static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
+			uint32_t n)
 {
 	int ret = 0;
 	size_t i;
-	uint32_t req_len, where;
+	uint32_t req_len;
 	uint8_t *data = src;
 
-	where = dev->addr.start;
 	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
 
@@ -247,7 +248,8 @@ static qiprog_err writen(struct qiprog_device *dev, void *src, uint32_t n)
 		ret |= jedec_program_byte(dev, where++, data[i], 0xffff);
 	led_off(LED_R);
 
-	dev->addr.start += n;
+	/* Update the write pointer */
+	dev->addr.pwrite += n;
 
 	return ret;
 }
@@ -259,11 +261,11 @@ static struct qiprog_driver stellaris_lpc_drv = {
 	.set_bus = set_bus,
 	.read_chip_id = read_chip_id,
 	.set_address = set_address,
-	.readn = readn,
+	.read = read,
 	.read8 = read8,
 	.read16 = read16,
 	.read32 = read32,
-	.writen = writen,
+	.write = write,
 	.write8 = write8,
 	.write16 = write16,
 	.write32 = write32,
