@@ -97,7 +97,7 @@ void lpc_init(void)
 	gpio_clear(CTLPORT, pins);
 	print_spew("This line is used to delay until RESET is released.\n");
 	/* Release reset. the chip is now ready */
-	gpio_set(CTLPORT, GPIO6);
+	gpio_set(CTLPORT, RSTPIN);
 }
 
 /**
