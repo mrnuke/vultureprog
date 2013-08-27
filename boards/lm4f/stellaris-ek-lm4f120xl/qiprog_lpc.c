@@ -25,6 +25,7 @@
 #include <jedec_flash.h>
 
 static struct qiprog_driver stellaris_lpc_drv;
+static uint32_t chip_size = 0;
 
 /**
  * @brief QiProg driver 'dev_open' member
@@ -95,6 +96,19 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 
 	/* Tell the host if we encountered an error or not in reading the ID */
 	return ret;
+}
+
+static qiprog_err set_chip_size(struct qiprog_device *dev, uint8_t chip_idx,
+				uint32_t size)
+{
+	(void) dev;
+
+	/* Only one chip suported */
+	if (chip_idx != 0)
+		return QIPROG_ERR_ARG;
+
+	chip_size = size;
+	return QIPROG_SUCCESS;
 }
 
 static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
@@ -261,6 +275,7 @@ static struct qiprog_driver stellaris_lpc_drv = {
 	.set_bus = set_bus,
 	.read_chip_id = read_chip_id,
 	.set_address = set_address,
+	.set_chip_size = set_chip_size,
 	.read = read,
 	.read8 = read8,
 	.read16 = read16,
