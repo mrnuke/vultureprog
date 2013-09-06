@@ -249,7 +249,13 @@ static qiprog_err read(struct qiprog_device *dev, uint32_t where, void *dest,
 {
 	int ret = 0;
 	size_t i;
-	uint32_t req_len;
+	uint32_t req_len, base;
+
+	/* Halt on overflow */
+	if (chip_size < (where + n))
+		return QIPROG_ERR;
+
+	base = 0xffffffff - chip_size + 1 + where;
 
 	(void)dev;
 
@@ -258,11 +264,11 @@ static qiprog_err read(struct qiprog_device *dev, uint32_t where, void *dest,
 
 	led_on(LED_B);
 	for (i = 0; i < n; i++)
-		ret |= lpc_mread(where++, dest + i);
+		ret |= lpc_mread(base++, dest + i);
 	led_off(LED_B);
 
 	/* Update the read pointer */
-	dev->addr.pread = where;
+	dev->addr.pread += n;
 
 	return ret;
 }
@@ -272,8 +278,14 @@ static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 {
 	int ret = 0;
 	size_t i;
-	uint32_t req_len;
+	uint32_t req_len, base;
 	uint8_t *data = src;
+
+	/* Halt on overflow */
+	if (chip_size < (where + n))
+		return QIPROG_ERR;
+
+	base = 0xffffffff - chip_size + 1 + where;
 
 	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
@@ -287,7 +299,7 @@ static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 	 */
 	led_on(LED_R);
 	for (i = 0; i < n; i++)
-		ret |= jedec_program_byte(dev, where++, data[i], 0xffff);
+		ret |= jedec_program_byte(dev, base++, data[i], 0xffff);
 	led_off(LED_R);
 
 	/* Update the write pointer */
