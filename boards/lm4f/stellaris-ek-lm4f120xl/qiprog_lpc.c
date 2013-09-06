@@ -74,11 +74,18 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 {
 	qiprog_err ret = 0;
 	uint8_t mfg_id, dev_id;
-	uint32_t mask;
+	uint32_t mask, old_size;
 
 	(void)dev;
 
 	led_on(LED_B);
+
+	/*
+	 * jedec_probe() uses physical addresses, so by setting chip_size to
+	 * zero, we ensure we read and write to the physical address.
+	 */
+	old_size = chip_size;
+	chip_size = 0;
 
 	/*
 	 * Run the JEDEC probing sequence. Most, if not all LPC chips support
@@ -88,6 +95,7 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 	 * supplied by the host.
 	 */
 	ret = jedec_probe(dev, ids, 0xffff0000, &mask);
+	chip_size = old_size;
 
 	/* We only allow connecting one chip. */
 	ids[1].id_method = QIPROG_ID_INVALID;
