@@ -26,6 +26,8 @@
 
 static struct qiprog_driver stellaris_lpc_drv;
 static uint32_t chip_size = 0;
+static uint32_t block_size = 0;
+static uint32_t sector_size = 0;
 
 /**
  * @brief QiProg driver 'dev_open' member
@@ -116,6 +118,42 @@ static qiprog_err set_chip_size(struct qiprog_device *dev, uint8_t chip_idx,
 		return QIPROG_ERR_ARG;
 
 	chip_size = size;
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err set_erase_size(struct qiprog_device *dev, uint8_t chip_idx,
+				 enum qiprog_erase_type *types, uint32_t *sizes,
+				 size_t num_sizes)
+{
+	size_t i;
+
+	(void)dev;
+
+	/* We only support one connected chip */
+	if (chip_idx > 0)
+		return QIPROG_ERR_ARG;
+
+	/* Reset any previous values */
+	block_size = sector_size = 0;
+	/* Find the block and/or sector sizes */
+	for (i = 0; i < num_sizes; i++) {
+		if (types[i] == QIPROG_ERASE_TYPE_SECTOR) {
+			sector_size = sizes[i];
+			print_spew("Sector size set to %u\n", sector_size);
+			continue;
+		}
+		if (types[i] == QIPROG_ERASE_TYPE_BLOCK) {
+			block_size = sizes[i];
+			print_spew("Block size set to %u\n", block_size);
+			continue;
+		}
+	}
+
+	if (!sector_size && !block_size) {
+		print_err("No sector or block size specified\n");
+		return QIPROG_ERR_ARG;
+	}
+
 	return QIPROG_SUCCESS;
 }
 
@@ -316,6 +354,7 @@ static struct qiprog_driver stellaris_lpc_drv = {
 	.read_chip_id = read_chip_id,
 	.set_address = set_address,
 	.set_chip_size = set_chip_size,
+	.set_erase_size = set_erase_size,
 	.read = read,
 	.read8 = read8,
 	.read16 = read16,
