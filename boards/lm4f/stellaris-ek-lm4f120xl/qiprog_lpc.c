@@ -202,6 +202,46 @@ static qiprog_err set_custom_erase_command(struct qiprog_device *dev,
 	return QIPROG_ERR;
 }
 
+static qiprog_err set_write_command(struct qiprog_device *dev, uint8_t chip_idx,
+				    enum qiprog_write_cmd cmd,
+				    enum qiprog_write_subcmd subcmd)
+{
+	(void)dev;
+
+	/* We only support one connected chip */
+	if (chip_idx > 0)
+		return QIPROG_ERR_ARG;
+
+	/* We only support JEDEC_ISA sequences at the moment */
+	if ((cmd != QIPROG_WRITE_CMD_JEDEC_ISA) ||
+	    (subcmd != QIPROG_WRITE_SUBCMD_DEFAULT)) {
+		print_err("Unsupported write command %u:%u\n", cmd, subcmd);
+		return QIPROG_ERR_ARG;
+	}
+
+	print_spew("Using JEDEC ISA byte-program sequence\n");
+
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err set_custom_write_command(struct qiprog_device *dev,
+					   uint8_t chip_idx, uint32_t *addr,
+					   uint8_t *data, size_t num_bytes)
+{
+	(void)dev;
+
+	/* FIXME: This is a stub */
+	(void)addr;
+	(void)data;
+	(void)num_bytes;
+
+	/* We only support one connected chip */
+	if (chip_idx > 0)
+		return QIPROG_ERR_ARG;
+
+	return QIPROG_ERR;
+}
+
 static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
 			uint8_t * data)
 {
@@ -402,6 +442,8 @@ static struct qiprog_driver stellaris_lpc_drv = {
 	.set_erase_size = set_erase_size,
 	.set_erase_command = set_erase_command,
 	.set_custom_erase_command = set_custom_erase_command,
+	.set_write_command = set_write_command,
+	.set_custom_write_command = set_custom_write_command,
 	.read = read,
 	.read8 = read8,
 	.read16 = read16,
