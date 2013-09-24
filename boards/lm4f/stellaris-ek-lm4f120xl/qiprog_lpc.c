@@ -23,11 +23,13 @@
 #include <blackbox.h>
 #include <qiprog_usb_dev.h>
 #include <jedec_flash.h>
+#include <stdbool.h>
 
 static struct qiprog_driver stellaris_lpc_drv;
 static uint32_t chip_size = 0;
 static uint32_t block_size = 0;
 static uint32_t sector_size = 0;
+static bool auto_erase = false;
 
 /**
  * @brief QiProg driver 'dev_open' member
@@ -155,6 +157,49 @@ static qiprog_err set_erase_size(struct qiprog_device *dev, uint8_t chip_idx,
 	}
 
 	return QIPROG_SUCCESS;
+}
+
+static qiprog_err set_erase_command(struct qiprog_device *dev, uint8_t chip_idx,
+				    enum qiprog_erase_cmd cmd,
+				    enum qiprog_erase_subcmd subcmd,
+				    uint16_t flags)
+{
+	(void)dev;
+
+	/* We only support one connected chip */
+	if (chip_idx > 0)
+		return QIPROG_ERR_ARG;
+
+	/* We only support JEDEC_ISA sequences at the moment */
+	if ((cmd != QIPROG_ERASE_CMD_JEDEC_ISA) ||
+	    (subcmd != QIPROG_ERASE_SUBCMD_DEFAULT)) {
+		print_err("Unsupported erase command %u:%u\n", cmd, subcmd);
+		return QIPROG_ERR_ARG;
+	}
+
+	auto_erase = (flags & QIPROG_ERASE_BEFORE_WRITE) ? true : false;
+
+	print_spew("Using JEDEC ISA erase sequence %s\n", (auto_erase) ?
+		   "with auto erase":"");
+	return QIPROG_SUCCESS;
+}
+
+static qiprog_err set_custom_erase_command(struct qiprog_device *dev,
+					   uint8_t chip_idx, uint32_t *addr,
+					   uint8_t *data, size_t num_bytes)
+{
+	(void)dev;
+
+	/* FIXME: This is a stub */
+	(void)addr;
+	(void)data;
+	(void)num_bytes;
+
+	/* We only support one connected chip */
+	if (chip_idx > 0)
+		return QIPROG_ERR_ARG;
+
+	return QIPROG_ERR;
 }
 
 static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
@@ -355,6 +400,8 @@ static struct qiprog_driver stellaris_lpc_drv = {
 	.set_address = set_address,
 	.set_chip_size = set_chip_size,
 	.set_erase_size = set_erase_size,
+	.set_erase_command = set_erase_command,
+	.set_custom_erase_command = set_custom_erase_command,
 	.read = read,
 	.read8 = read8,
 	.read16 = read16,
