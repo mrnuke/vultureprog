@@ -31,6 +31,18 @@ static uint32_t block_size = 0;
 static uint32_t sector_size = 0;
 static bool auto_erase = false;
 
+static uint32_t saved_chip_size = 0;
+
+static void push_chip_size(void) {
+	saved_chip_size = chip_size;
+	chip_size = 0;
+}
+
+static void pop_chip_size(void) {
+	chip_size = saved_chip_size;
+	saved_chip_size = 0;
+}
+
 /**
  * @brief QiProg driver 'dev_open' member
  */
@@ -396,6 +408,40 @@ static qiprog_err read(struct qiprog_device *dev, uint32_t where, void *dest,
 	return ret;
 }
 
+static void erase(struct qiprog_device *dev, uint32_t start, uint32_t end)
+{
+	uint32_t erase_size, i, erase_base, i_start, i_end;
+
+	if (!block_size && !sector_size) {
+		print_err("Erase size not specified. Skipping auto erase.\n");
+		auto_erase = false;
+		return;
+	}
+
+	/* Prefer block erasers over sector erasers */
+	erase_size = block_size ? block_size : sector_size;
+
+	/* Convert address range to block/sector numbers */
+	i_start = start / erase_size;
+	i_end = (end - 1) / erase_size;
+
+	/* See if the start address falls within our range */
+	for (i = i_start; i <= i_end; i++) {
+		erase_base = i * erase_size;
+		if (erase_base >= start) {
+			if (block_size) {
+				print_err("Block eraser not implemented\n");
+				return;
+				/* jedec_block_erase(dev, erase_base, 0xffff);*/
+				print_spew("Erasing block @ %u\n", erase_base);
+			} else {
+				jedec_sector_erase(dev, erase_base, 0xffff);
+				print_spew("Erasing sector @ %u\n", erase_base);
+			}
+		}
+	}
+}
+
 static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 			uint32_t n)
 {
@@ -413,6 +459,13 @@ static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
 
+	/* JEDEC commands work with absolute addresses */
+	push_chip_size();
+
+	/* Erase if needed */
+	if (auto_erase)
+		erase(dev, base, base + n);
+
 	/*
 	 * A few things to note:
 	 * We may want to optimize the loop to reduce the number of function
@@ -425,6 +478,7 @@ static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 		ret |= jedec_program_byte(dev, base++, data[i], 0xffff);
 	led_off(LED_R);
 
+	pop_chip_size();
 	/* Update the write pointer */
 	dev->addr.pwrite += n;
 
