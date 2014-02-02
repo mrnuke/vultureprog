@@ -436,7 +436,8 @@ static void erase(struct qiprog_device *dev, uint32_t start, uint32_t end)
 				print_spew("Erasing block @ %u\n", erase_base);
 			} else {
 				jedec_sector_erase(dev, erase_base, 0xffff);
-				print_spew("Erasing sector @ %u\n", erase_base);
+				print_spew("Erasing sector at 0x%x\n",
+					   erase_base);
 			}
 		}
 	}
