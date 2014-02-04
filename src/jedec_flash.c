@@ -144,7 +144,7 @@ qiprog_err jedec_probe(struct qiprog_device *dev, struct qiprog_chip_id *id,
 		/* And see if it's valid */
 		vid = id16 & 0xff;
 		pid = (id16 >> 8) & 0xff;
-		if (!is_odd_parity(vid) || !is_odd_parity(pid))
+		if (!is_odd_parity(vid))
 			continue;
 
 		/* We found it! */
