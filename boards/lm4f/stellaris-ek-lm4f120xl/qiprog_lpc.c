@@ -432,12 +432,12 @@ static void erase(struct qiprog_device *dev, uint32_t start, uint32_t end)
 			if (block_size) {
 				print_err("Block eraser not implemented\n");
 				return;
-				/* jedec_block_erase(dev, erase_base, 0xffff);*/
 				print_spew("Erasing block @ %u\n", erase_base);
+				/* jedec_block_erase(dev, erase_base, 0xffff);*/
 			} else {
-				jedec_sector_erase(dev, erase_base, 0xffff);
 				print_spew("Erasing sector at 0x%x\n",
 					   erase_base);
+				jedec_sector_erase(dev, erase_base, 0xffff);
 			}
 		}
 	}
