@@ -193,7 +193,8 @@ qiprog_err jedec_program_byte(struct qiprog_device *dev, uint32_t addr,
 		return ret;
 
 	ret = qiprog_write8(dev, addr, val);
-	return ret | jedec_wait_ready(dev, base);
+	ret |= jedec_wait_ready(dev, base);
+	return ret;
 }
 
 /**
@@ -212,7 +213,8 @@ qiprog_err jedec_chip_erase(struct qiprog_device *dev, uint32_t base,
 
 	ret = jedec_send_cmd(dev, base, mask, JEDEC_CMD_ERASE);
 	ret |= jedec_send_cmd(dev, base, mask, JEDEC_CMD_ERASE_CHIP);
-	return jedec_wait_ready(dev, base);
+	ret |= jedec_wait_ready(dev, base);
+	return ret;
 }
 
 /**
@@ -236,5 +238,6 @@ qiprog_err jedec_sector_erase(struct qiprog_device *dev, uint32_t sector,
 	ret |= qiprog_write8(dev, base | (offset1 & mask), 0xaa);
 	ret |= qiprog_write8(dev, base | (offset2 & mask), 0x55);
 	ret |= qiprog_write8(dev, base | sector, JEDEC_CMD_ERASE_SECTOR);
-	return jedec_wait_ready(dev, base);
+	ret |= jedec_wait_ready(dev, base);
+	return ret;
 }
