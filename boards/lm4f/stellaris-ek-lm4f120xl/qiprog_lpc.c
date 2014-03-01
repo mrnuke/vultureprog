@@ -89,7 +89,6 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 			       struct qiprog_chip_id ids[9])
 {
 	qiprog_err ret = 0;
-	uint8_t mfg_id, dev_id;
 	uint32_t mask, old_size;
 
 	(void)dev;
