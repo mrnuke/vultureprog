@@ -31,18 +31,6 @@ static uint32_t block_size = 0;
 static uint32_t sector_size = 0;
 static bool auto_erase = false;
 
-static uint32_t saved_chip_size = 0;
-
-static void push_chip_size(void) {
-	saved_chip_size = chip_size;
-	chip_size = 0;
-}
-
-static void pop_chip_size(void) {
-	chip_size = saved_chip_size;
-	saved_chip_size = 0;
-}
-
 /**
  * @brief QiProg driver 'dev_open' member
  */
@@ -89,18 +77,11 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 			       struct qiprog_chip_id ids[9])
 {
 	qiprog_err ret = 0;
-	uint32_t mask, old_size;
+	uint32_t mask;
 
 	(void)dev;
 
 	led_on(LED_B);
-
-	/*
-	 * jedec_probe() uses physical addresses, so by setting chip_size to
-	 * zero, we ensure we read and write to the physical address.
-	 */
-	old_size = chip_size;
-	chip_size = 0;
 
 	/*
 	 * Run the JEDEC probing sequence. Most, if not all LPC chips support
@@ -110,7 +91,6 @@ static qiprog_err read_chip_id(struct qiprog_device *dev,
 	 * supplied by the host.
 	 */
 	ret = jedec_probe(dev, ids, 0xffff0000, &mask);
-	chip_size = old_size;
 
 	/* We only allow connecting one chip. */
 	ids[1].id_method = QIPROG_ID_INVALID;
@@ -256,15 +236,12 @@ static qiprog_err set_custom_write_command(struct qiprog_device *dev,
 static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
 			uint8_t * data)
 {
-	uint32_t base;
 	qiprog_err ret = 0;
 
 	(void)dev;
 
-	base = 0xffffffff - chip_size + 1 + addr;
-
 	led_on(LED_B);
-	ret = lpc_mread(base, data);
+	ret = lpc_mread(addr, data);
 	led_off(LED_B);
 
 	return ret;
@@ -273,18 +250,15 @@ static qiprog_err read8(struct qiprog_device *dev, uint32_t addr,
 static qiprog_err read16(struct qiprog_device *dev, uint32_t addr,
 			 uint16_t * data)
 {
-	uint32_t base;
 	uint8_t *raw = (void *)data;
 	qiprog_err ret = 0;
 
 	(void)dev;
 
-	base = 0xffffffff - chip_size + 1 + addr;
-
 	led_on(LED_B);
 	/* Read in little-endian order. FIXME: is this the final answer? */
-	ret |= lpc_mread(base + 0, raw);
-	ret |= lpc_mread(base + 1, raw + 1);
+	ret |= lpc_mread(addr + 0, raw);
+	ret |= lpc_mread(addr + 1, raw + 1);
 	led_off(LED_B);
 
 	return ret;
@@ -293,20 +267,17 @@ static qiprog_err read16(struct qiprog_device *dev, uint32_t addr,
 static qiprog_err read32(struct qiprog_device *dev, uint32_t addr,
 			 uint32_t * data)
 {
-	uint32_t base;
 	uint8_t *raw = (void *)data;
 	qiprog_err ret = 0;
 
 	(void)dev;
 
-	base = 0xffffffff - chip_size + 1 + addr;
-
 	led_on(LED_B);
 	/* Read in little-endian order. FIXME: is this the final answer? */
-	ret |= lpc_mread(base + 0, raw + 0);
-	ret |= lpc_mread(base + 1, raw + 1);
-	ret |= lpc_mread(base + 2, raw + 2);
-	ret |= lpc_mread(base + 3, raw + 3);
+	ret |= lpc_mread(addr + 0, raw + 0);
+	ret |= lpc_mread(addr + 1, raw + 1);
+	ret |= lpc_mread(addr + 2, raw + 2);
+	ret |= lpc_mread(addr + 3, raw + 3);
 	led_off(LED_B);
 
 	return QIPROG_SUCCESS;
@@ -314,15 +285,12 @@ static qiprog_err read32(struct qiprog_device *dev, uint32_t addr,
 
 static qiprog_err write8(struct qiprog_device *dev, uint32_t addr, uint8_t data)
 {
-	uint32_t base;
 	qiprog_err ret = 0;
 
 	(void)dev;
 
-	base = 0xffffffff - chip_size + 1 + addr;
-
 	led_on(LED_R);
-	ret = lpc_mwrite(base, data);
+	ret = lpc_mwrite(addr, data);
 	led_off(LED_R);
 
 	return ret;
@@ -331,17 +299,14 @@ static qiprog_err write8(struct qiprog_device *dev, uint32_t addr, uint8_t data)
 static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
 			  uint16_t data)
 {
-	uint32_t base;
 	qiprog_err ret = 0;
 
 	(void)dev;
 
-	base = 0xffffffff - chip_size + 1 + addr;
-
 	led_on(LED_R);
 	/* Write in little-endian order. FIXME: is this the final answer? */
-	ret |= lpc_mwrite(base + 0, (data >> 0) & 0xff);
-	ret |= lpc_mwrite(base + 1, (data >> 8) & 0xff);
+	ret |= lpc_mwrite(addr + 0, (data >> 0) & 0xff);
+	ret |= lpc_mwrite(addr + 1, (data >> 8) & 0xff);
 	led_off(LED_R);
 
 	return ret;
@@ -350,19 +315,16 @@ static qiprog_err write16(struct qiprog_device *dev, uint32_t addr,
 static qiprog_err write32(struct qiprog_device *dev, uint32_t addr,
 			  uint32_t data)
 {
-	uint32_t base;
 	qiprog_err ret = 0;
 
 	(void)dev;
 
-	base = 0xffffffff - chip_size + 1 + addr;
-
 	led_on(LED_R);
 	/* Write in little-endian order. FIXME: is this the final answer? */
-	ret |= lpc_mwrite(base + 0, (data >> 0) & 0xff);
-	ret |= lpc_mwrite(base + 1, (data >> 8) & 0xff);
-	ret |= lpc_mwrite(base + 2, (data >> 16) & 0xff);
-	ret |= lpc_mwrite(base + 3, (data >> 24) & 0xff);
+	ret |= lpc_mwrite(addr + 0, (data >> 0) & 0xff);
+	ret |= lpc_mwrite(addr + 1, (data >> 8) & 0xff);
+	ret |= lpc_mwrite(addr + 2, (data >> 16) & 0xff);
+	ret |= lpc_mwrite(addr + 3, (data >> 24) & 0xff);
 	led_off(LED_R);
 
 	return ret;
@@ -459,9 +421,6 @@ static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 	req_len = dev->addr.end - where;
 	n = (req_len > n) ? n : req_len;
 
-	/* JEDEC commands work with absolute addresses */
-	push_chip_size();
-
 	/* Erase if needed */
 	if (auto_erase)
 		erase(dev, base, base + n);
@@ -478,7 +437,6 @@ static qiprog_err write(struct qiprog_device *dev, uint32_t where, void *src,
 		ret |= jedec_program_byte(dev, base++, data[i], 0xffff);
 	led_off(LED_R);
 
-	pop_chip_size();
 	/* Update the write pointer */
 	dev->addr.pwrite += n;
 
