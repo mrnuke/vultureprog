@@ -133,11 +133,17 @@ static const char *usb_strings[] = {
 
 static uint16_t send_packet(void *data, uint16_t len)
 {
+	uint16_t num_bytes;
 	/* Only send the packet if we receive an IN token */
-	if (USB_TXCSRL(1) & USB_TXCSRL_UNDRN)
-		return usbd_ep_write_packet(qiprog_dev, 0x81, data, len);
-	else
+	if (USB_TXCSRL(1) & USB_TXCSRL_UNDRN) {
+		num_bytes = usbd_ep_write_packet(qiprog_dev, 0x81, data, len);
+		/* We need to manually clear the under-run condition */
+		USB_TXCSRL(1) &= ~USB_TXCSRL_UNDRN;
+		return num_bytes;
+	}
+	else {
 		return 0;
+	}
 }
 
 static uint16_t read_packet(void *data, uint16_t len)
