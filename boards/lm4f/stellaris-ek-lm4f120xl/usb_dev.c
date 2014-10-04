@@ -130,6 +130,10 @@ static const char *usb_strings[] = {
 /* =============================================================================
  * = USB "glue"
  * ---------------------------------------------------------------------------*/
+static bool daddy_is_ready(void)
+{
+	return (USB_TXCSRL(1) & USB_TXCSRL_UNDRN) ? true : false;
+}
 
 static uint16_t send_packet(void *data, uint16_t len)
 {
@@ -208,7 +212,7 @@ static void set_config(usbd_device * usbd_dev, uint16_t wValue)
 
 	qiprog_change_device(&stellaris_lpc_dev);
 
-	qiprog_usb_dev_init(send_packet, read_packet, 64, 64, qiprog_buf);
+	qiprog_usb_dev_init(send_packet, read_packet, daddy_is_ready, 64, 64, qiprog_buf);
 
 	print_info("Done.\n\r");
 }
